@@ -1,13 +1,19 @@
 
+import android.app.Activity
 import android.opengl.Visibility
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -15,12 +21,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.example.repocollector.R
+import com.facebook.AccessToken
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
+import com.facebook.login.widget.LoginButton
+import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.Job
 
 @Composable
 fun LoginPage(paddingValues: PaddingValues, onGoogleSignInClick: () -> Job, onRegisterScreen: () -> Unit,onSingInScreen: () -> Unit) {
+    var user by remember { mutableStateOf<FirebaseUser?>(null) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
@@ -119,16 +136,69 @@ fun LoginPage(paddingValues: PaddingValues, onGoogleSignInClick: () -> Job, onRe
                     .size(48.dp) // Size of the image
                     .clickable { onGoogleSignInClick() }
             )
-           /* Image(
-                painter = painterResource(id = R.drawable.ic_facebook_logo),
-                contentDescription = "Google Login",
 
-                modifier = Modifier
-                    .size(48.dp) // Size of the image
-                    .clickable {  } // Clickable for interaction
-            )*/
+            FacebookLoginWithImage { accessToken ->
+                firebaseAuthWithFacebook(accessToken) { firebaseUser ->
+                    user = firebaseUser
+                    onSingInScreen()
+                }
+            }
 
         }
 
     }
+
 }
+
+
+
+fun firebaseAuthWithFacebook(accessToken: AccessToken, onAuthComplete: (FirebaseUser?) -> Unit) {
+    val credential = FacebookAuthProvider.getCredential(accessToken.token)
+    FirebaseAuth.getInstance().signInWithCredential(credential)
+        .addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val user = FirebaseAuth.getInstance().currentUser
+                onAuthComplete
+            } else {
+                Log.e("FirebaseAuth", "Authentication failed: ${task.exception?.message}")
+                onAuthComplete(null)
+            }
+        }
+}
+@Composable
+fun FacebookLoginWithImage(onLoginSuccess: (AccessToken) -> Unit) {
+    val context = LocalContext.current
+    val callbackManager = CallbackManager.Factory.create()
+
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .clickable {
+
+                val loginManager = LoginManager.getInstance()
+                loginManager.logInWithReadPermissions(context as Activity, listOf("email", "public_profile"))
+                loginManager.registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
+                    override fun onSuccess(result: LoginResult) {
+                        onLoginSuccess(result.accessToken)
+                    }
+
+                    override fun onCancel() {
+                        Log.d("FacebookLogin", "Login canceled")
+                    }
+
+                    override fun onError(error: FacebookException) {
+                        Log.e("FacebookLogin", "Error: ${error.message}")
+                    }
+                })
+            }
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_facebook_logo), // Your Facebook logo resource
+            contentDescription = "Facebook Login",
+            modifier = Modifier.fillMaxSize() // Ensure the image fills the circle
+        )
+    }
+}
+
+

@@ -75,15 +75,18 @@ fun LoginPage(paddingValues: PaddingValues, onGoogleSignInClick: () -> Job, onRe
         // Login Button
         Button(
             onClick = {
-                FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            onSingInScreen()
-                        } else {
-                            errorMessage= task.exception?.message ?: "Login failed"
-
+                if (email.isEmpty() || password.isEmpty()) {
+                    errorMessage = "Email and Password cannot be empty"
+                } else {
+                    FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                onSingInScreen() // Navigate to the next screen on successful login
+                            } else {
+                                errorMessage = task.exception?.message ?: "Login failed"
+                            }
                         }
-                    }
+                }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -116,7 +119,14 @@ fun LoginPage(paddingValues: PaddingValues, onGoogleSignInClick: () -> Job, onRe
                     .size(48.dp) // Size of the image
                     .clickable { onGoogleSignInClick() }
             )
+            Image(
+                painter = painterResource(id = R.drawable.ic_facebook_logo),
+                contentDescription = "Google Login",
 
+                modifier = Modifier
+                    .size(48.dp) // Size of the image
+                    .clickable {  } // Clickable for interaction
+            )
 
         }
 

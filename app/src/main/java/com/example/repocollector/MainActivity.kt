@@ -110,6 +110,8 @@ class MainActivity : ComponentActivity() {
                     }
                 }, onRegisterScreen = {
                     navController.navigate("register_screen")
+                }, onSingInScreen = {
+                    navController.navigate("repo_screen")
                 }
                 )
             }

@@ -1,5 +1,4 @@
 
-import android.util.Log
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.foundation.Image
@@ -7,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -19,10 +17,11 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Job
 
 @Composable
-fun LoginPage(paddingValues: PaddingValues, onGoogleSignInClick: () -> Job, onRegisterScreen: () -> Unit) {
+fun LoginPage(paddingValues: PaddingValues, onGoogleSignInClick: () -> Job, onRegisterScreen: () -> Unit,onSingInScreen: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisibility by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -66,7 +65,17 @@ fun LoginPage(paddingValues: PaddingValues, onGoogleSignInClick: () -> Job, onRe
 
         // Login Button
         Button(
-            onClick = { loginWithEmail( email, password) },
+            onClick = {
+                FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            onSingInScreen()
+                        } else {
+                            errorMessage= task.exception?.message ?: "Login failed"
+
+                        }
+                    }
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Login")
@@ -110,9 +119,3 @@ fun LoginPage(paddingValues: PaddingValues, onGoogleSignInClick: () -> Job, onRe
 
     }
 }
-
-fun loginWithEmail( email: String, password: String) {
-    Log.d("loginWithEmail","Move")
-
-}
-

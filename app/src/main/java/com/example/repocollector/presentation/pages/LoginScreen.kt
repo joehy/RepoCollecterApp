@@ -1,4 +1,6 @@
 
+import android.opengl.Visibility
+import android.widget.Toast
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.foundation.Image
@@ -6,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -20,9 +23,15 @@ import kotlinx.coroutines.Job
 fun LoginPage(paddingValues: PaddingValues, onGoogleSignInClick: () -> Job, onRegisterScreen: () -> Unit,onSingInScreen: () -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val context = LocalContext.current
     var passwordVisibility by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-
+    val currentErrorMessage by rememberUpdatedState(errorMessage)
+    LaunchedEffect(currentErrorMessage) {
+        errorMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -107,13 +116,7 @@ fun LoginPage(paddingValues: PaddingValues, onGoogleSignInClick: () -> Job, onRe
                     .size(48.dp) // Size of the image
                     .clickable { onGoogleSignInClick() }
             )
-            Image(
-                painter = painterResource(id = R.drawable.ic_facebook_logo),
-                contentDescription = "Google Login",
-                modifier = Modifier
-                    .size(48.dp) // Size of the image
-                    .clickable { onGoogleSignInClick() } // Clickable for interaction
-            )
+
 
         }
 

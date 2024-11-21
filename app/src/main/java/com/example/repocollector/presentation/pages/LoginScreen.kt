@@ -119,14 +119,14 @@ fun LoginPage(paddingValues: PaddingValues, onGoogleSignInClick: () -> Job, onRe
                     .size(48.dp) // Size of the image
                     .clickable { onGoogleSignInClick() }
             )
-            Image(
+           /* Image(
                 painter = painterResource(id = R.drawable.ic_facebook_logo),
                 contentDescription = "Google Login",
 
                 modifier = Modifier
                     .size(48.dp) // Size of the image
                     .clickable {  } // Clickable for interaction
-            )
+            )*/
 
         }
 
